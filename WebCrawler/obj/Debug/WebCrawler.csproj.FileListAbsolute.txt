@@ -1,0 +1,10 @@
+C:\Git Projects\WebCrawler\WebCrawler\bin\Debug\WebCrawler.exe
+C:\Git Projects\WebCrawler\WebCrawler\bin\Debug\WebCrawler.pdb
+C:\Git Projects\WebCrawler\WebCrawler\bin\Debug\CommandLine.dll
+C:\Git Projects\WebCrawler\WebCrawler\bin\Debug\CommandLine.xml
+C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.csproj.AssemblyReference.cache
+C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.csproj.SuggestedBindingRedirects.cache
+C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.csproj.CoreCompileInputs.cache
+C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.csproj.CopyComplete
+C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.exe
+C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.pdb
