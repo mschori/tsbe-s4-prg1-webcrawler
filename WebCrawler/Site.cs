@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
+using HtmlAgilityPack;
 
 namespace WebCrawler
 {
@@ -7,14 +9,16 @@ namespace WebCrawler
     {
         public string Name { get; set; }
         public string Path { get; set; }
+        public string Content { get; set; }
         public List<Stylesheet> Stylesheets = new List<Stylesheet>();
         public List<Link> ExternalLinks = new List<Link>();
         public List<Link> InternalLinks = new List<Link>();
         public List<Image> Images = new List<Image>();
 
-        public Site(string path)
+        public Site(string path, string content)
         {
             Path = path;
+            Content = content;
             // TODO generate name
             Name = "index";
         }
@@ -31,13 +35,32 @@ namespace WebCrawler
 
         public void Analyze()
         {
-            Console.WriteLine("analyze...");
+            var doc = new HtmlDocument();
+            doc.LoadHtml(Content);
 
-            // TODO analyze page
+            // Extract links
+            foreach (HtmlNode link in doc.DocumentNode.SelectNodes("//a[@href]"))
+            {
+                Console.WriteLine(link.Attributes["href"].Value);
+                String url = link.Attributes["href"].Value;
+                if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                {
+                    ExternalLinks.Add(new Link(url));
+                }
+                else
+                {
+                    InternalLinks.Add(new Link(url));
+                }
+            }
 
-            // TODO extract links
-
-            // TODO extract images
+            // Extract Images
+            foreach (HtmlNode image in doc.DocumentNode.SelectNodes("//img[@src]"))
+            {
+                Console.WriteLine(image.Attributes["src"].Value);
+                Images.Add(new Image(image.Attributes["src"].Value));
+            }
+            
+            // TODO Extract Stylesheets
         }
     }
 }

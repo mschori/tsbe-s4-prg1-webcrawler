@@ -18,7 +18,7 @@ namespace WebCrawler
                 .WithParsed<ArgumentOptions>(Execute);
 
             // Block automatic close of window
-            Console.ReadKey();
+            // Console.ReadKey();
         }
 
         private bool CreateFolderStructure(string location)
@@ -44,8 +44,9 @@ namespace WebCrawler
         {
             var p = new Program();
             WebClient client = new WebClient();
-            Console.WriteLine(p.CreateFolderStructure(opts.Location));
-            p._newSites.Add(new Site(opts.Url));
+            p.CreateFolderStructure(opts.Location);
+            String htmlContent = client.DownloadString(opts.Url);
+            p._newSites.Add(new Site("/", htmlContent));
 
             while (true)
             {
@@ -56,16 +57,70 @@ namespace WebCrawler
 
                 var site = p._newSites.First();
 
-                var loc = String.Format("C:\\{0}/{1}.html", opts.Location, site.Name);
-                client.DownloadFile(site.Path, Path.GetFullPath(loc));
+                String[] s = site.Path.Split('/');
+                String last = site.Name;
+                String newPath = String.Join("/", s.Take(s.Length - 1).ToArray());
+                Console.WriteLine(opts.Location + newPath);
+                p.CreateFolderStructure(opts.Location + newPath);
+
+                Console.WriteLine(opts.Location + newPath);
+
+                var loc = String.Format("C:/{0}/{1}.html", opts.Location + newPath, site.Name);
+                Console.WriteLine(loc);
+                Console.WriteLine(opts.Url + site.Path);
+                client.DownloadFile(opts.Url + site.Path, Path.GetFullPath(loc));
                 site.Analyze();
+                List<String> processedLinks = new List<string>();
                 site.InternalLinks.ForEach(link =>
                 {
                     // TODO check if link is already processed
-                    p._newSites.Add(new Site(link.Path));
+                    bool found = p._processedSites.Any(x => x.Path == link.Path);
+                    bool found2 = processedLinks.Any(x => x == link.Path);
+                    if (!found && !found2)
+                    {
+                        Console.WriteLine("Download File: {0}", opts.Url + link.Path);
+                        try
+                        {
+                            htmlContent = client.DownloadString(opts.Url + link.Path);
+                            // p._newSites.Add(new Site(link.Path, htmlContent));
+                        }
+                        catch (Exception e)
+                        {
+                            // TODO do nothing
+                        }
+                    }
+
+                    processedLinks.Add(link.Path);
                 });
                 p._newSites.Remove(site);
                 p._processedSites.Add(site);
+            }
+
+            // Save images
+            foreach (Site site in p._processedSites)
+            {
+                foreach (Image image in site.Images)
+                {
+                    String[] s = image.Path.Split('/');
+                    String last = s.Last();
+                    String newPath = String.Join("/", s.Take(s.Length - 1).ToArray());
+                    Console.WriteLine("Last Part: {0}", last);
+                    Console.WriteLine("NewPath: {0}", newPath);
+                    // TODO save image
+                    try
+                    {
+                        p.CreateFolderStructure(opts.Location + "/" + newPath);
+                        Console.WriteLine("Created FolderStrucute: {0}", opts.Location + "/" + newPath);
+                        var loc = String.Format("C:\\{0}/{1}", opts.Location, image.Path);
+                        client.DownloadFile(opts.Url + "/" + image.Path, Path.GetFullPath(loc));
+                    }
+                    catch (Exception e)
+                    {
+                        // TODO do nothing...
+                        Console.WriteLine(e);
+                    }
+
+                }
             }
 
             // TODO create statistic

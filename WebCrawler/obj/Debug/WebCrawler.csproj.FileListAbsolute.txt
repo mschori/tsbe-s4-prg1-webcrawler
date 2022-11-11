@@ -8,3 +8,6 @@ C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.csproj.CoreCompileInp
 C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.csproj.CopyComplete
 C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.exe
 C:\Git Projects\WebCrawler\WebCrawler\obj\Debug\WebCrawler.pdb
+C:\Git Projects\WebCrawler\WebCrawler\bin\Debug\HtmlAgilityPack.dll
+C:\Git Projects\WebCrawler\WebCrawler\bin\Debug\HtmlAgilityPack.pdb
+C:\Git Projects\WebCrawler\WebCrawler\bin\Debug\HtmlAgilityPack.xml
