@@ -15,37 +15,34 @@ namespace WebCrawler
         public static void Main(string[] args)
         {
             Parser.Default.ParseArguments<ArgumentOptions>(args)
-                .WithParsed<ArgumentOptions>(Execute);
-
-            // Block automatic close of window
-            // Console.ReadKey();
+                .WithParsed(Execute);
         }
 
-        private bool CreateFolderStructure(string location)
+        private void CreateFolderStructure(string location)
         {
             location = Path.GetFullPath("C:\\" + location);
-            if (!Directory.Exists(location))
+
+            if (Directory.Exists(location))
             {
-                try
-                {
-                    Directory.CreateDirectory(location);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    return false;
-                }
+                return;
             }
 
-            return true;
+            try
+            {
+                Directory.CreateDirectory(location);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
 
         private static void Execute(ArgumentOptions opts)
         {
             var p = new Program();
-            WebClient client = new WebClient();
+            var client = new WebClient();
             p.CreateFolderStructure(opts.Location);
-            String htmlContent = client.DownloadString(opts.Url);
+            var htmlContent = client.DownloadString(opts.Url);
             p._newSites.Add(new Site("/", htmlContent));
 
             while (true)
@@ -57,25 +54,25 @@ namespace WebCrawler
 
                 var site = p._newSites.First();
 
-                String[] s = site.Path.Split('/');
-                String last = site.Name;
-                String newPath = String.Join("/", s.Take(s.Length - 1).ToArray());
+                var s = site.Path.Split('/');
+                var last = site.Name;
+                var newPath = string.Join("/", s.Take(s.Length - 1).ToArray());
                 Console.WriteLine(opts.Location + newPath);
                 p.CreateFolderStructure(opts.Location + newPath);
 
                 Console.WriteLine(opts.Location + newPath);
 
-                var loc = String.Format("C:/{0}/{1}.html", opts.Location + newPath, site.Name);
+                var loc = string.Format("C:/{0}/{1}.html", opts.Location + newPath, site.Name);
                 Console.WriteLine(loc);
                 Console.WriteLine(opts.Url + site.Path);
                 client.DownloadFile(opts.Url + site.Path, Path.GetFullPath(loc));
                 site.Analyze();
-                List<String> processedLinks = new List<string>();
+                var processedLinks = new List<string>();
                 site.InternalLinks.ForEach(link =>
                 {
                     // TODO check if link is already processed
-                    bool found = p._processedSites.Any(x => x.Path == link.Path);
-                    bool found2 = processedLinks.Any(x => x == link.Path);
+                    var found = p._processedSites.Any(x => x.Path == link.Path);
+                    var found2 = processedLinks.Any(x => x == link.Path);
                     if (!found && !found2)
                     {
                         Console.WriteLine("Download File: {0}", opts.Url + link.Path);
@@ -97,21 +94,21 @@ namespace WebCrawler
             }
 
             // Save images
-            foreach (Site site in p._processedSites)
+            foreach (var site in p._processedSites)
             {
-                foreach (Image image in site.Images)
+                foreach (var image in site.Images)
                 {
-                    String[] s = image.Path.Split('/');
-                    String last = s.Last();
-                    String newPath = String.Join("/", s.Take(s.Length - 1).ToArray());
+                    var s = image.Path.Split('/');
+                    var last = s.Last();
+                    var newPath = String.Join("/", s.Take(s.Length - 1).ToArray());
                     Console.WriteLine("Last Part: {0}", last);
                     Console.WriteLine("NewPath: {0}", newPath);
                     // TODO save image
                     try
                     {
                         p.CreateFolderStructure(opts.Location + "/" + newPath);
-                        Console.WriteLine("Created FolderStrucute: {0}", opts.Location + "/" + newPath);
-                        var loc = String.Format("C:\\{0}/{1}", opts.Location, image.Path);
+                        Console.WriteLine("Created FolderStructure: {0}", opts.Location + "/" + newPath);
+                        var loc = string.Format("C:\\{0}/{1}", opts.Location, image.Path);
                         client.DownloadFile(opts.Url + "/" + image.Path, Path.GetFullPath(loc));
                     }
                     catch (Exception e)
@@ -119,7 +116,6 @@ namespace WebCrawler
                         // TODO do nothing...
                         Console.WriteLine(e);
                     }
-
                 }
             }
 
