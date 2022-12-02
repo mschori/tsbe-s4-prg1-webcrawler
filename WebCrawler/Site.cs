@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
 namespace WebCrawler
@@ -18,8 +20,11 @@ namespace WebCrawler
         {
             Path = path;
             Content = content;
-            // TODO generate name
-            Name = "index";
+            Name = path.Split('/').Last();
+            if (Name.Length < 1)
+            {
+                Name = "index";
+            }
         }
 
         public int GetAmountLinks(bool isInternal)
@@ -55,7 +60,6 @@ namespace WebCrawler
         {
             foreach (var link in doc.DocumentNode.SelectNodes("//a[@href]"))
             {
-                Console.WriteLine(link.Attributes["href"].Value);
                 var url = link.Attributes["href"].Value;
                 if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
                 {
@@ -63,23 +67,43 @@ namespace WebCrawler
                 }
                 else
                 {
-                    InternalLinks.Add(new Link(url));
+                    var re = new Regex(@"^/[a-zA-Z0-9\-\/]+$");
+                    if (re.IsMatch(url))
+                    {
+                        InternalLinks.Add(new Link(url));
+                    }
                 }
             }
         }
 
         private void ExtractImages(HtmlDocument doc)
         {
-            foreach (var image in doc.DocumentNode.SelectNodes("//img[@src]"))
+            try
             {
-                Console.WriteLine(image.Attributes["src"].Value);
-                Images.Add(new Image(image.Attributes["src"].Value));
+                foreach (var image in doc.DocumentNode.SelectNodes("//img[@src]"))
+                {
+                    Images.Add(new Image(image.Attributes["src"].Value));
+                }
+            }
+            catch (Exception e)
+            {
+                // TODO nothing
             }
         }
 
         private void ExtractStylesheets(HtmlDocument doc)
         {
-            // TODO Extract Stylesheets
+            try
+            {
+                foreach (var cssFile in doc.DocumentNode.SelectNodes("//link[@href]"))
+                {
+                    Stylesheets.Add(new Stylesheet(cssFile.Attributes["href"].Value));
+                }
+            }
+            catch (Exception e)
+            {
+                // TODO nothing
+            }
         }
     }
 }
