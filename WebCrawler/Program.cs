@@ -41,8 +41,8 @@ namespace WebCrawler
 
         private void SaveFile(string baseUrl, string fileWebLink, string saveLocation)
         {
-            var s = fileWebLink.Split('/');
-            var newPath = string.Join("/", s.Take(s.Length - 1).ToArray());
+            var split = fileWebLink.Split('/');
+            var newPath = string.Join("/", split.Take(split.Length - 1).ToArray());
             try
             {
                 CreateFolderStructure(saveLocation + "/" + newPath);
@@ -54,6 +54,7 @@ namespace WebCrawler
                 }
 
                 var loc = $"{saveLocation}/{fileWebLink}";
+                Console.WriteLine("Downloading file: {0}", fileWebLink);
                 _client.DownloadFile(baseUrl + "/" + fileWebLink, Path.GetFullPath(loc));
             }
             catch (Exception e)
@@ -79,13 +80,12 @@ namespace WebCrawler
                 }
 
                 var site = p._newSites.First();
-                var s = site.Path.Split('/');
-                var newPath = string.Join("/", s.Take(s.Length - 1).ToArray());
+                var siteSplit = site.Path.Split('/');
+                var newPath = string.Join("/", siteSplit.Take(siteSplit.Length - 1).ToArray());
                 p.CreateFolderStructure(opts.Location + newPath);
-                var loc = Path.Combine(p._saveLocation, newPath);
-                loc = $"{loc}/{site.Name}.html";
+                var loc = $"{Path.Combine(p._saveLocation, newPath)}/{site.Name}.html";
+                Console.WriteLine("Downloading page: {0}", opts.Url + site.Path);
                 p._client.DownloadFile(opts.Url + site.Path, Path.GetFullPath(loc));
-
                 site.Analyze();
 
                 site.InternalLinks.ForEach(link =>
@@ -94,7 +94,7 @@ namespace WebCrawler
                     var found2 = processedLinks.Any(x => x == link.Path);
                     if (!found && !found2)
                     {
-                        Console.WriteLine("Download File: {0}", opts.Url + link.Path);
+                        Console.WriteLine("Downloading page: {0}", opts.Url + link.Path);
                         try
                         {
                             htmlContent = p._client.DownloadString(opts.Url + link.Path);
