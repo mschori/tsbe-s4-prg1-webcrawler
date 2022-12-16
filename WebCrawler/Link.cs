@@ -2,7 +2,7 @@
 {
     public class Link
     {
-        public string Path { get; set; }
+        public string Path { get; }
 
         public Link(string path)
         {

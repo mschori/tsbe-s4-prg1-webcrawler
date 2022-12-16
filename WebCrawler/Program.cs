@@ -12,6 +12,7 @@ namespace WebCrawler
         private readonly List<Site> _newSites = new List<Site>();
         private readonly List<Site> _processedSites = new List<Site>();
         private readonly WebClient _client = new WebClient();
+        private string _saveLocation;
 
         public static void Main(string[] args)
         {
@@ -21,7 +22,7 @@ namespace WebCrawler
 
         private void CreateFolderStructure(string location)
         {
-            location = Path.GetFullPath("C:\\" + location);
+            location = Path.GetFullPath(location);
 
             if (Directory.Exists(location))
             {
@@ -41,25 +42,22 @@ namespace WebCrawler
         private void SaveFile(string baseUrl, string fileWebLink, string saveLocation)
         {
             var s = fileWebLink.Split('/');
-            var last = s.Last();
             var newPath = string.Join("/", s.Take(s.Length - 1).ToArray());
-            Console.WriteLine("Last Part: {0}", last);
-            Console.WriteLine("NewPath: {0}", newPath);
             try
             {
                 CreateFolderStructure(saveLocation + "/" + newPath);
-                var idx = fileWebLink.IndexOf("?");
+                // Check if fileWebLink has suspect characters after file-extension
+                var idx = fileWebLink.IndexOf("?", StringComparison.Ordinal);
                 if (idx > 0)
                 {
                     fileWebLink = fileWebLink.Substring(0, idx);
                 }
 
-                var loc = string.Format("C:\\{0}/{1}", saveLocation, fileWebLink);
+                var loc = $"{saveLocation}/{fileWebLink}";
                 _client.DownloadFile(baseUrl + "/" + fileWebLink, Path.GetFullPath(loc));
             }
             catch (Exception e)
             {
-                // TODO do nothing...
                 Console.WriteLine(e);
             }
         }
@@ -67,10 +65,10 @@ namespace WebCrawler
         private static void Execute(ArgumentOptions opts)
         {
             var p = new Program();
-            p.CreateFolderStructure(opts.Location);
+            p._saveLocation = opts.Location;
+            p.CreateFolderStructure(p._saveLocation);
             var htmlContent = p._client.DownloadString(opts.Url);
             p._newSites.Add(new Site("/", htmlContent));
-
             var processedLinks = new List<string>();
 
             while (true)
@@ -84,7 +82,8 @@ namespace WebCrawler
                 var s = site.Path.Split('/');
                 var newPath = string.Join("/", s.Take(s.Length - 1).ToArray());
                 p.CreateFolderStructure(opts.Location + newPath);
-                var loc = string.Format("C:/{0}/{1}.html", opts.Location + newPath, site.Name);
+                var loc = Path.Combine(p._saveLocation, newPath);
+                loc = $"{loc}/{site.Name}.html";
                 p._client.DownloadFile(opts.Url + site.Path, Path.GetFullPath(loc));
 
                 site.Analyze();
@@ -93,7 +92,6 @@ namespace WebCrawler
                 {
                     var found = p._processedSites.Any(x => x.Path == link.Path);
                     var found2 = processedLinks.Any(x => x == link.Path);
-                    processedLinks.ForEach(Console.WriteLine);
                     if (!found && !found2)
                     {
                         Console.WriteLine("Download File: {0}", opts.Url + link.Path);
@@ -104,7 +102,7 @@ namespace WebCrawler
                         }
                         catch (Exception e)
                         {
-                            // TODO do nothing
+                            Console.WriteLine(e);
                         }
 
                         processedLinks.Add(link.Path);
@@ -128,8 +126,26 @@ namespace WebCrawler
                 }
             }
 
-            // TODO create statistic
-            // TODO terminate program
+            if (opts.Statistic)
+            {
+                var amountInternalLinks = 0;
+                var amountExternalLinks = 0;
+                var amountImages = 0;
+
+                foreach (var site in p._processedSites)
+                {
+                    amountInternalLinks += site.GetAmountLinks(true);
+                    amountExternalLinks += site.GetAmountLinks(false);
+                    amountImages += site.GetAmountImages();
+                }
+
+                Console.WriteLine("\n----------- STATISTIC ----------");
+                Console.WriteLine("Amount of internal links: {0}", amountInternalLinks);
+                Console.WriteLine("Amount of external links: {0}", amountExternalLinks);
+                Console.WriteLine("Amount of images: {0}", amountImages);
+            }
+
+            Console.WriteLine("\n-----------> Finished program. Please give a good note  :)");
         }
     }
 }

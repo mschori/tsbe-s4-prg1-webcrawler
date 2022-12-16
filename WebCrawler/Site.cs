@@ -8,13 +8,13 @@ namespace WebCrawler
 {
     public class Site
     {
-        public string Name { get; set; }
-        public string Path { get; set; }
-        public string Content { get; set; }
-        public List<Stylesheet> Stylesheets = new List<Stylesheet>();
-        public List<Link> ExternalLinks = new List<Link>();
-        public List<Link> InternalLinks = new List<Link>();
-        public List<Image> Images = new List<Image>();
+        public string Name { get; }
+        public string Path { get; }
+        private string Content { get; }
+        public readonly List<Stylesheet> Stylesheets = new List<Stylesheet>();
+        private readonly List<Link> _externalLinks = new List<Link>();
+        public readonly List<Link> InternalLinks = new List<Link>();
+        public readonly List<Image> Images = new List<Image>();
 
         public Site(string path, string content)
         {
@@ -29,12 +29,12 @@ namespace WebCrawler
 
         public int GetAmountLinks(bool isInternal)
         {
-            return 2;
+            return isInternal ? InternalLinks.Count : _externalLinks.Count;
         }
 
         public int GetAmountImages()
         {
-            return 2;
+            return Images.Count;
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace WebCrawler
                 var url = link.Attributes["href"].Value;
                 if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
                 {
-                    ExternalLinks.Add(new Link(url));
+                    _externalLinks.Add(new Link(url));
                 }
                 else
                 {
@@ -87,7 +87,7 @@ namespace WebCrawler
             }
             catch (Exception e)
             {
-                // TODO nothing
+                Console.WriteLine(e);
             }
         }
 
@@ -102,7 +102,7 @@ namespace WebCrawler
             }
             catch (Exception e)
             {
-                // TODO nothing
+                Console.WriteLine(e);
             }
         }
     }

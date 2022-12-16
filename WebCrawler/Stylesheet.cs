@@ -2,7 +2,7 @@
 {
     public class Stylesheet
     {
-        public string Path { get; set; }
+        public string Path { get; }
 
         public Stylesheet(string path)
         {
